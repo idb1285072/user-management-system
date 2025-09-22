@@ -111,7 +111,7 @@
                 class="text-danger"
                 style="font-size: x-small"
                 *ngIf="row.get('name')?.touched && row.get('name')?.invalid"
-                >Name is required</span
+                >Name is required.</span
               >
             </td>
 
@@ -136,6 +136,32 @@
               >
                 {{ row.get("age")?.value }}
               </span>
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('age')?.touched &&
+                  row.get('age')?.getError('required')
+                "
+                >Age is required.</span
+              >
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('age')?.touched && row.get('age')?.getError('min')
+                "
+              >
+                Age must be at least 18.</span
+              >
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('age')?.touched && row.get('age')?.getError('max')
+                "
+                >Age must be max 120 years.</span
+              >
             </td>
 
             <td (dblclick)="onCellDblClick(i, 'email')">
@@ -163,6 +189,34 @@
               >
                 {{ row.get("email")?.value }}
               </span>
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('email')?.touched &&
+                  row.get('email')?.getError('notUniqueEmail')
+                "
+                >Email already exists. Please choose another.</span
+              >
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('email')?.touched &&
+                  row.get('email')?.getError('required')
+                "
+                >Email is required.</span
+              >
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('email')?.touched &&
+                  row.get('email')?.getError('email')
+                "
+              >
+                Enter a valid email format.</span
+              >
             </td>
 
             <td (dblclick)="onCellDblClick(i, 'phone')">
@@ -215,6 +269,15 @@
               >
                 {{ row.get("address")?.value }}
               </span>
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('address')?.touched &&
+                  row.get('address')?.getError('required')
+                "
+                >Address is required.</span
+              >
             </td>
 
             <td (dblclick)="onCellDblClick(i, 'registeredDate')">
@@ -242,6 +305,15 @@
               >
                 {{ row.get("registeredDate")?.value | date }}
               </span>
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('registeredDate')?.touched &&
+                  row.get('registeredDate')?.getError('required')
+                "
+                >Registered Date is required.</span
+              >
             </td>
 
             <td (dblclick)="onCellDblClick(i, 'role')">
@@ -272,6 +344,15 @@
               >
                 {{ getRoleName(row.get("role")!.value) }}
               </span>
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="
+                  row.get('role')?.touched &&
+                  row.get('role')?.getError('required')
+                "
+                >Role is required.</span
+              >
             </td>
 
             <td (dblclick)="onCellDblClick(i, 'isActive')">
@@ -366,15 +447,43 @@
               <button
                 type="button"
                 class="btn btn-info btn-sm m-1"
-                (click)="startAddColumn(i)"
+                (click)="startAddColumn(displayedUsers[i])"
               >
                 Add Column
               </button>
             </td>
           </tr>
-
-        
-
+          <tr
+            *ngIf="addColumnUserId === row.get('id')?.value"
+            [formGroup]="addColumnForm"
+          >
+            <td></td>
+            <td colspan="9">
+              <div class="d-flex">
+                <input
+                  type="text"
+                  placeholder="Column Name"
+                  class="form-control me-2"
+                  formControlName="column"
+                />
+                <input
+                  type="text"
+                  placeholder="Value"
+                  class="form-control me-2"
+                  formControlName="value"
+                />
+                <button
+                  class="btn btn-success me-2"
+                  (click)="onSaveColumn(displayedUsers[i])"
+                >
+                  Save
+                </button>
+                <button class="btn btn-secondary" (click)="onCancelColumn()">
+                  Cancel
+                </button>
+              </div>
+            </td>
+          </tr>
           <!-- Children add -->
           <tr *ngIf="inlineEditIndex === i || isBulkMode">
             <td></td>

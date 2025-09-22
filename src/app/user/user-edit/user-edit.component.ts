@@ -70,10 +70,17 @@ export class UserEditComponent implements OnInit {
           uniqueEmailValidator(this.userService),
         ],
       }),
-      phone: this.fb.control('', { nonNullable: true }),
-      address: this.fb.control('', { nonNullable: true }),
+      phone: this.fb.control('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      address: this.fb.control('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
       registeredDate: this.fb.control(new Date().toISOString().split('T')[0], {
         nonNullable: true,
+        validators: [Validators.required],
       }),
       isActive: this.fb.control(false, { nonNullable: true }),
       role: this.fb.control(UserTypeEnum.User, {
