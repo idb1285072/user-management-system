@@ -1,0 +1,65 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <button
+      class="btn btn-outline-light me-2"
+      type="button"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#sidebarMenu"
+      aria-controls="sidebarMenu"
+    >
+      <i class="bi bi-list"></i>
+    </button>
+
+    <a class="navbar-brand fw-bold" routerLink="/users">
+      Angular Test <sup>01</sup>
+    </a>
+  </div>
+</nav>
+
+<div
+  class="offcanvas offcanvas-start bg-light"
+  tabindex="-1"
+  id="sidebarMenu"
+  aria-labelledby="sidebarMenuLabel"
+>
+  <div class="offcanvas-header bg-dark text-white">
+    <h5 class="offcanvas-title" id="sidebarMenuLabel">Menu</h5>
+    <button
+      type="button"
+      class="btn-close btn-close-white"
+      data-bs-dismiss="offcanvas"
+      aria-label="Close"
+    ></button>
+  </div>
+  <div class="offcanvas-body">
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item">
+        <a
+          routerLink="/users"
+          class="text-decoration-none text-dark"
+          data-bs-dismiss="offcanvas"
+        >
+          <i class="bi bi-house-door me-2"></i> Home
+        </a>
+      </li>
+      <li class="list-group-item">
+        <a
+          routerLink="/users"
+          class="text-decoration-none text-dark"
+          data-bs-dismiss="offcanvas"
+        >
+          <i class="bi bi-people me-2"></i> Users
+        </a>
+      </li>
+      <li class="list-group-item">
+        <a
+          routerLink="/user-add"
+          class="text-decoration-none text-dark"
+          data-bs-dismiss="offcanvas"
+        >
+          <i class="bi bi-person-plus me-2"></i> Add New
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>

@@ -1,0 +1,455 @@
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>User List</h2>
+
+    <div class="mb-3">
+      <label class="me-2 fw-bold">Status:</label>
+      <div class="form-check form-check-inline" *ngFor="let s of statusOptions">
+        <input
+          class="form-check-input"
+          type="radio"
+          name="statusFilter"
+          [id]="s.value + 'Status'"
+          [value]="s.value"
+          [(ngModel)]="statusFilter"
+          (change)="onStatusChange()"
+          [disabled]="isBulkUpdate"
+        />
+        <label class="form-check-label" [for]="s.value + 'Status'">
+          {{ s.label | titlecase }}
+        </label>
+      </div>
+    </div>
+
+    <div class="mb-3 d-flex align-items-center">
+      <label class="ms-3 me-2 fw-bold">Role:</label>
+      <select
+        class="form-select d-inline-block w-auto"
+        [(ngModel)]="roleFilter"
+        (change)="onRoleChange()"
+        [disabled]="isBulkUpdate"
+      >
+        <option [ngValue]="'all'">All</option>
+        <option *ngFor="let role of roleOptions" [ngValue]="role">
+          {{ getRoleName(role) }}
+        </option>
+      </select>
+    </div>
+
+    <button class="btn btn-warning" (click)="enableBulkMode()">
+      Bulk Update
+    </button>
+    <button
+      class="btn btn-success"
+      (click)="onAddUser()"
+      [disabled]="isBulkUpdate"
+    >
+      Add User
+    </button>
+  </div>
+
+  <div class="mb-3">
+    <input
+      type="text"
+      class="form-control"
+      placeholder="Search by name, email or phone..."
+      [(ngModel)]="searchTerm"
+      (ngModelChange)="onSearchChange($event)"
+      [disabled]="isBulkUpdate"
+    />
+  </div>
+
+  <!-- Table -->
+  <form [formGroup]="usersForm">
+    <table class="table table-striped table-hover table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th>Registered Date</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody formArrayName="users">
+        <ng-container
+          *ngFor="let row of usersArray.controls; let i = index"
+          [formGroupName]="i"
+        >
+          <tr>
+            <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+
+            <td (dblclick)="onCellDblClick(i, 'name')">
+              <input
+                *ngIf="
+                  isBulkMode ||
+                  inlineEditIndex === i ||
+                  (editingCell?.rowIndex === i && editingCell?.field === 'name')
+                "
+                class="form-control form-control-sm"
+                formControlName="name"
+                (blur)="onCellBlur(i, 'name')"
+              />
+              <span
+                *ngIf="
+                  !isBulkMode &&
+                  inlineEditIndex !== i &&
+                  !(
+                    editingCell?.rowIndex === i && editingCell?.field === 'name'
+                  )
+                "
+              >
+                {{ row.get("name")?.value }}
+              </span>
+              <span
+                class="text-danger"
+                style="font-size: x-small"
+                *ngIf="row.get('name')?.touched && row.get('name')?.invalid"
+                >Name is required</span
+              >
+            </td>
+
+            <td (dblclick)="onCellDblClick(i, 'age')">
+              <input
+                *ngIf="
+                  isBulkMode ||
+                  inlineEditIndex === i ||
+                  (editingCell?.rowIndex === i && editingCell?.field === 'age')
+                "
+                type="number"
+                class="form-control form-control-sm"
+                formControlName="age"
+                (blur)="onCellBlur(i, 'age')"
+              />
+              <span
+                *ngIf="
+                  !isBulkMode &&
+                  inlineEditIndex !== i &&
+                  !(editingCell?.rowIndex === i && editingCell?.field === 'age')
+                "
+              >
+                {{ row.get("age")?.value }}
+              </span>
+            </td>
+
+            <td (dblclick)="onCellDblClick(i, 'email')">
+              <input
+                *ngIf="
+                  isBulkMode ||
+                  inlineEditIndex === i ||
+                  (editingCell?.rowIndex === i &&
+                    editingCell?.field === 'email')
+                "
+                type="email"
+                class="form-control form-control-sm"
+                formControlName="email"
+                (blur)="onCellBlur(i, 'email')"
+              />
+              <span
+                *ngIf="
+                  !isBulkMode &&
+                  inlineEditIndex !== i &&
+                  !(
+                    editingCell?.rowIndex === i &&
+                    editingCell?.field === 'email'
+                  )
+                "
+              >
+                {{ row.get("email")?.value }}
+              </span>
+            </td>
+
+            <td (dblclick)="onCellDblClick(i, 'phone')">
+              <input
+                *ngIf="
+                  isBulkMode ||
+                  inlineEditIndex === i ||
+                  (editingCell?.rowIndex === i &&
+                    editingCell?.field === 'phone')
+                "
+                class="form-control form-control-sm"
+                formControlName="phone"
+                (blur)="onCellBlur(i, 'phone')"
+              />
+              <span
+                *ngIf="
+                  !isBulkMode &&
+                  inlineEditIndex !== i &&
+                  !(
+                    editingCell?.rowIndex === i &&
+                    editingCell?.field === 'phone'
+                  )
+                "
+              >
+                {{ row.get("phone")?.value }}
+              </span>
+            </td>
+
+            <td (dblclick)="onCellDblClick(i, 'address')">
+              <input
+                *ngIf="
+                  isBulkMode ||
+                  inlineEditIndex === i ||
+                  (editingCell?.rowIndex === i &&
+                    editingCell?.field === 'address')
+                "
+                class="form-control form-control-sm"
+                formControlName="address"
+                (blur)="onCellBlur(i, 'address')"
+              />
+              <span
+                *ngIf="
+                  !isBulkMode &&
+                  inlineEditIndex !== i &&
+                  !(
+                    editingCell?.rowIndex === i &&
+                    editingCell?.field === 'address'
+                  )
+                "
+              >
+                {{ row.get("address")?.value }}
+              </span>
+            </td>
+
+            <td (dblclick)="onCellDblClick(i, 'registeredDate')">
+              <input
+                type="date"
+                *ngIf="
+                  isBulkMode ||
+                  inlineEditIndex === i ||
+                  (editingCell?.rowIndex === i &&
+                    editingCell?.field === 'registeredDate')
+                "
+                class="form-control form-control-sm"
+                formControlName="registeredDate"
+                (blur)="onCellBlur(i, 'registeredDate')"
+              />
+              <span
+                *ngIf="
+                  !isBulkMode &&
+                  inlineEditIndex !== i &&
+                  !(
+                    editingCell?.rowIndex === i &&
+                    editingCell?.field === 'registeredDate'
+                  )
+                "
+              >
+                {{ row.get("registeredDate")?.value | date }}
+              </span>
+            </td>
+
+            <td (dblclick)="onCellDblClick(i, 'role')">
+              <select
+                *ngIf="
+                  isBulkMode ||
+                  inlineEditIndex === i ||
+                  (editingCell?.rowIndex === i && editingCell?.field === 'role')
+                "
+                (blur)="onCellBlur(i, 'role')"
+                class="form-select form-select-sm"
+                formControlName="role"
+              >
+                <option *ngFor="let role of roleOptions" [ngValue]="role">
+                  {{ getRoleName(role) }}
+                </option>
+              </select>
+              <span
+                *ngIf="
+                  !isBulkMode &&
+                  inlineEditIndex !== i &&
+                  !(
+                    editingCell?.rowIndex === i && editingCell?.field === 'role'
+                  )
+                "
+                class="badge"
+                [ngClass]="getRoleClass(row.get('role')!.value)"
+              >
+                {{ getRoleName(row.get("role")!.value) }}
+              </span>
+            </td>
+
+            <td (dblclick)="onCellDblClick(i, 'isActive')">
+              <select
+                *ngIf="
+                  isBulkMode ||
+                  inlineEditIndex === i ||
+                  (editingCell?.rowIndex === i &&
+                    editingCell?.field === 'isActive')
+                "
+                (blur)="onCellBlur(i, 'isActive')"
+                class="form-select form-select-sm"
+                formControlName="isActive"
+              >
+                <option [ngValue]="true">Active</option>
+                <option [ngValue]="false">Inactive</option>
+              </select>
+
+              <span
+                *ngIf="
+                  !isBulkMode &&
+                  inlineEditIndex !== i &&
+                  !(
+                    editingCell?.rowIndex === i &&
+                    editingCell?.field === 'isActive'
+                  )
+                "
+                class="badge"
+                [ngClass]="
+                  row.get('isActive')?.value ? 'bg-success' : 'bg-danger'
+                "
+              >
+                {{ row.get("isActive")?.value ? "Active" : "Inactive" }}
+              </span>
+            </td>
+
+            <!-- Actions -->
+            <td>
+              <ng-container *ngIf="!isBulkMode">
+                <button
+                  *ngIf="inlineEditIndex !== i"
+                  type="button"
+                  class="btn btn-sm m-1"
+                  [ngClass]="
+                    row.get('isActive')?.value ? 'btn-danger' : 'btn-success'
+                  "
+                  (click)="onToggleStatus(displayedUsers[i])"
+                >
+                  {{ row.get("isActive")?.value ? "Inactive" : "Active" }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-warning m-1"
+                  *ngIf="row.get('isActive')?.value && inlineEditIndex !== i"
+                  (click)="onEditUser(displayedUsers[i])"
+                >
+                  Edit
+                </button>
+                <button
+                  *ngIf="inlineEditIndex !== i"
+                  type="button"
+                  class="btn btn-primary btn-sm m-1"
+                  (click)="onInlineEdit(i)"
+                >
+                  Inline edit
+                </button>
+                <button
+                  *ngIf="inlineEditIndex === i"
+                  type="button"
+                  class="btn btn-success btn-sm m-1"
+                  (click)="onSaveInlineEdit(i)"
+                >
+                  Save
+                </button>
+                <button
+                  *ngIf="inlineEditIndex === i"
+                  type="button"
+                  class="btn btn-secondary btn-sm m-1"
+                  (click)="onCancelInlineEdit()"
+                >
+                  Cancel
+                </button>
+              </ng-container>
+              <button
+                *ngIf="!row.get('isActive')?.value"
+                class="btn btn-danger btn-sm m-1"
+                type="button"
+                (click)="onDeleteUser(displayedUsers[i])"
+              >
+                Delete
+              </button>
+              <button
+                type="button"
+                class="btn btn-info btn-sm m-1"
+                (click)="startAddColumn(i)"
+              >
+                Add Column
+              </button>
+            </td>
+          </tr>
+
+        
+
+          <!-- Children add -->
+          <tr *ngIf="inlineEditIndex === i || isBulkMode">
+            <td></td>
+            <td colspan="9">
+              <div formArrayName="children">
+                <div
+                  *ngFor="let c of getChildren(i).controls; let j = index"
+                  [formGroupName]="j"
+                  class="d-flex mb-1 gap-1"
+                >
+                  <input
+                    class="form-control form-control-sm"
+                    placeholder="Column"
+                    formControlName="column"
+                  />
+                  <input
+                    class="form-control form-control-sm"
+                    placeholder="Value"
+                    formControlName="value"
+                  />
+                  <button
+                    *ngIf="isBulkMode || inlineEditIndex === i"
+                    type="button"
+                    class="btn btn-sm btn-danger"
+                    (click)="removeColumn(i, j)"
+                  >
+                    remove
+                  </button>
+                </div>
+              </div>
+              <button
+                *ngIf="isBulkMode || inlineEditIndex === i"
+                type="button"
+                class="btn btn-outline-primary btn-sm"
+                (click)="addColumn(i)"
+              >
+                Add Column
+              </button>
+            </td>
+          </tr>
+          <ng-container
+            *ngIf="
+              getChildren(i).controls && getChildren(i).controls.length > 0
+            "
+          >
+            <tr *ngFor="let chunk of chunkChildren(getChildren(i).value, 8)">
+              <td></td>
+              <td *ngFor="let child of chunk">
+                <strong>{{ child.column }}:</strong> {{ child.value }}
+              </td>
+              <td *ngFor="let empty of [].constructor(8 - chunk.length)"></td>
+              <td></td>
+            </tr>
+          </ng-container>
+        </ng-container>
+        <tr *ngIf="usersArray.length === 0">
+          <td colspan="11" class="text-center">No users found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </form>
+
+  <div *ngIf="isBulkMode">
+    <button class="btn btn-success me-2" (click)="saveBulkMode()">
+      Save All
+    </button>
+    <button class="btn btn-secondary" (click)="cancelBulkMode()">Cancel</button>
+  </div>
+
+  <!-- Pagination -->
+  <app-pagination
+    [totalItems]="totalUsers"
+    [itemsPerPage]="itemsPerPage"
+    [currentPage]="currentPage"
+    [isDisabled]="false"
+    (pageChange)="onPaginationChange($event)"
+  ></app-pagination>
+</div>
