@@ -15,11 +15,9 @@ import { UserTypeEnum } from '../types/enums/user-type.enum';
 import { StatusTypeEnum } from '../types/enums/status-type.enum';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { uniqueEmailValidator } from 'src/app/shared/validators/unique-email.validator';
-import {
-  ChildUserFormInterface,
-  UserFormInterface,
-  UsersFormInterface,
-} from '../types/users-form.interface';
+import { UsersFormInterface } from '../types/users-form.interface';
+import { ChildUserFormInterface } from '../types/child-user-form.interface';
+import { UserFormInterface } from '../types/user-form.interface';
 
 @Component({
   selector: 'app-user-list',
@@ -468,7 +466,6 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.usersForm = new FormGroup<UsersFormInterface>({
       users: new FormArray(userGroups),
     });
-    // this.disableAllRows();
   }
 
   get usersArray(): FormArray<FormGroup<UserFormInterface>> {

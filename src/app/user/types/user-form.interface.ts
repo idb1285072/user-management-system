@@ -1,7 +1,9 @@
-import { FormControl } from '@angular/forms';
+import { FormArray, FormControl, FormGroup } from '@angular/forms';
 import { UserTypeEnum } from './enums/user-type.enum';
+import { ChildUserFormInterface } from './child-user-form.interface';
 
-export interface UserInlineFormInterface {
+export interface UserFormInterface {
+  id: FormControl<number>;
   name: FormControl<string>;
   age: FormControl<number>;
   email: FormControl<string>;
@@ -10,5 +12,5 @@ export interface UserInlineFormInterface {
   registeredDate: FormControl<string>;
   role: FormControl<UserTypeEnum>;
   isActive: FormControl<boolean>;
-  // children?: FormArray<FormGroup<ChildUserBulkFormInterface>>;
+  children: FormArray<FormGroup<ChildUserFormInterface>>;
 }
