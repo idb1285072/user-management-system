@@ -372,6 +372,7 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.displayedUsers = users;
     this.totalUsers = totalUsers;
     this.buildUsersForm();
+    this.inlineEditIndexes.clear();
   }
 
   private reload(resetPage: boolean = false) {

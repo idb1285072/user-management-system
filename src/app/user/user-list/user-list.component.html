@@ -447,13 +447,25 @@
                 </button>
               </ng-container>
               <button
-                *ngIf="!row.get('isActive')?.value"
+                *ngIf="
+                  !row.get('isActive')?.value &&
+                  !isBulkMode &&
+                  !inlineEditIndexes.has(i)
+                "
                 class="btn btn-danger btn-sm m-1"
                 type="button"
                 (click)="onDeleteUser(displayedUsers[i])"
               >
                 Delete
               </button>
+              <!-- <button
+                *ngIf="isBulkMode || inlineEditIndexes.has(i)"
+                class="btn btn-danger btn-sm m-1"
+                type="button"
+                (click)="onDeleteUser(displayedUsers[i])"
+              >
+                Delete
+              </button> -->
             </td>
           </tr>
           <tr
