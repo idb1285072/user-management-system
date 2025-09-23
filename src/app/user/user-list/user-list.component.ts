@@ -104,6 +104,30 @@ export class UserListComponent implements OnInit, OnDestroy {
 
   onEnableBulkMode() {
     this.isBulkMode = true;
+    this.usersArray.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.usersArray.controls.forEach((ctrl) => {
+          ctrl
+            .get('email')
+            ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+        });
+      });
+    this.usersArray.controls.forEach((ctrl) => {
+      const emailControl = ctrl.get('email')!;
+      const originalEmail = emailControl.value;
+      emailControl.setValidators([
+        Validators.required,
+        Validators.email,
+        uniqueEmailValidator(
+          this.userService,
+          originalEmail,
+          this.usersArray,
+          emailControl
+        ),
+      ]);
+      emailControl.updateValueAndValidity({ emitEvent: false });
+    });
   }
 
   onCancelBulkMode() {

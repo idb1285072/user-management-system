@@ -1,23 +1,86 @@
-import { AbstractControl, ValidationErrors } from '@angular/forms';
+import {
+  AbstractControl,
+  FormArray,
+  FormGroup,
+  ValidationErrors,
+} from '@angular/forms';
+import { UserFormInterface } from 'src/app/user/types/user-form.interface';
 import { UserService } from 'src/app/user/user.service';
 
+// export function uniqueEmailValidator(
+//   userService: UserService,
+//   originalEmail: string = '',
+//   parentFormArray?: FormArray<FormGroup<UserFormInterface>>,
+//   currentControl?: AbstractControl
+// ) {
+//   return (control: AbstractControl): ValidationErrors | null => {
+//     const value = (control.value ?? '').trim().toLowerCase();
+//     if (!value) return null;
+
+//     let existsInFormArray = false;
+
+//     if (parentFormArray && currentControl) {
+//       const emailsInFormArray = parentFormArray.controls
+//         .filter((ctrl) => ctrl.get('email') !== currentControl)
+//         .map((ctrl) => (ctrl.get('email')?.value ?? '').trim().toLowerCase());
+
+//       existsInFormArray = emailsInFormArray.includes(value);
+//     }
+
+//     if (existsInFormArray) return { notUniqueEmail: true };
+//     const dbEmails = userService
+//       .getAllEmails()
+//       .map((e) => e.trim().toLowerCase());
+
+//     let emailsToIgnore: string[] = [];
+//     if (parentFormArray) {
+//       emailsToIgnore = parentFormArray.controls.map((ctrl) =>
+//         (ctrl.get('email')?.value ?? '').trim().toLowerCase()
+//       );
+//     }
+
+//     const existsInDb =
+//       dbEmails.includes(value) &&
+//       !emailsToIgnore.includes(value) &&
+//       value !== originalEmail.toLowerCase();
+
+//     return existsInDb ? { notUniqueEmail: true } : null;
+//   };
+// }
 export function uniqueEmailValidator(
   userService: UserService,
-  currentEmail?: string // pass existing email to ignore in edit
+  originalEmail: string = '',
+  parentFormArray?: FormArray<FormGroup<UserFormInterface>>,
+  currentControl?: AbstractControl
 ) {
   return (control: AbstractControl): ValidationErrors | null => {
-    const emails = userService.getAllEmails(); // string[]
-    const value =
-      typeof control.value === 'string'
-        ? control.value.trim().toLowerCase()
-        : '';
+    const value = (control.value ?? '').trim().toLowerCase();
+    if (!value) return null;
 
-    const exists = emails.some(
-      (e) =>
-        e.trim().toLowerCase() === value &&
-        e.trim().toLowerCase() !== (currentEmail?.trim().toLowerCase() || '')
-    );
+    let existsInFormArray = false;
 
-    return exists ? { notUniqueEmail: true } : null;
+    if (parentFormArray && currentControl) {
+      existsInFormArray = parentFormArray.controls.some((ctrl) => {
+        if (ctrl.get('email') === currentControl) return false;
+        const email = (ctrl.get('email')?.value ?? '').trim().toLowerCase();
+        return email === value;
+      });
+    }
+
+    if (existsInFormArray) return { notUniqueEmail: true };
+
+    const dbEmails = userService
+      .getAllEmails()
+      .map((e) => e.trim().toLowerCase());
+    const existsInDb =
+      dbEmails.includes(value) &&
+      (!parentFormArray ||
+        !parentFormArray.controls.some(
+          (ctrl) =>
+            (ctrl.get('email')?.value ?? '').trim().toLowerCase() === value
+        )) &&
+      value !== originalEmail.toLowerCase();
+
+    return existsInDb ? { notUniqueEmail: true } : null;
   };
 }
