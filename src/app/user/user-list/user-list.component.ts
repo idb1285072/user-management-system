@@ -30,19 +30,19 @@ export class UserListComponent implements OnInit, OnDestroy {
   displayedUsers: UserInterface[] = [];
   totalUsers: number = 0;
   isBulkUpdate: boolean = false;
-
+  editingCell: { rowIndex: number; field: string } | null = null;
+  addColumnForm!: FormGroup<ChildUserFormInterface>;
   usersForm!: FormGroup<UsersFormInterface>;
 
   inlineEditIndex: number | null = null;
   isBulkMode = false;
   addColumnUserId: number | null = null;
+
   currentPage: number = 1;
   itemsPerPage: number = 5;
   statusFilter: StatusTypeEnum = StatusTypeEnum.all;
   roleFilter: UserTypeEnum | 'all' = 'all';
   searchTerm: string = '';
-  editingCell: { rowIndex: number; field: string } | null = null;
-  addColumnForm!: FormGroup<ChildUserFormInterface>;
 
   statusOptions = [
     { label: 'all', value: StatusTypeEnum.all },
@@ -64,20 +64,6 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.buildUsersForm();
     this.initQueryParam();
     this.initSearchSubscription();
-  }
-
-  startAddColumn(user: UserInterface) {
-    this.addColumnUserId = user.id;
-    this.addColumnForm = new FormGroup({
-      column: new FormControl('', {
-        nonNullable: true,
-        validators: Validators.required,
-      }),
-      value: new FormControl('', {
-        nonNullable: true,
-        validators: Validators.required,
-      }),
-    });
   }
 
   onCancelColumn() {
@@ -141,7 +127,6 @@ export class UserListComponent implements OnInit, OnDestroy {
         this.displayedUsers[rowIndex][field as keyof UserInterface]
       );
     }
-    control?.disable();
     this.editingCell = null;
   }
 
@@ -161,7 +146,6 @@ export class UserListComponent implements OnInit, OnDestroy {
         control.setValue(
           this.displayedUsers[rowIndex][field as keyof UserInterface]
         );
-      control?.disable();
       this.editingCell = null;
     }
   }
@@ -174,7 +158,6 @@ export class UserListComponent implements OnInit, OnDestroy {
     if (this.inlineEditIndex !== null) {
       const idx = this.inlineEditIndex;
       this.usersArray.at(idx).reset(this.displayedUsers[idx]);
-      this.usersArray.at(idx).disable();
       this.inlineEditIndex = null;
     }
   }
@@ -188,17 +171,17 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.refreshDisplayedUsers();
   }
 
-  enableBulkMode() {
+  onEnableBulkMode() {
     this.isBulkMode = true;
     console.log(this.isBulkMode);
   }
 
-  cancelBulkMode() {
+  onCancelBulkMode() {
     this.isBulkMode = false;
     this.refreshDisplayedUsers();
   }
 
-  saveBulkMode() {
+  onSaveBulkMode() {
     if (this.usersForm.invalid) return;
     const updatedUsers: UserInterface[] = [];
     this.usersArray.controls.forEach((userGroup, index) => {
@@ -234,7 +217,21 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.refreshDisplayedUsers();
   }
 
-  addColumn(i: number) {
+  onStartAddColumn(user: UserInterface) {
+    this.addColumnUserId = user.id;
+    this.addColumnForm = new FormGroup({
+      column: new FormControl('', {
+        nonNullable: true,
+        validators: Validators.required,
+      }),
+      value: new FormControl('', {
+        nonNullable: true,
+        validators: Validators.required,
+      }),
+    });
+  }
+
+  onAddColumn(i: number) {
     this.getChildren(i).push(
       new FormGroup<ChildUserFormInterface>({
         column: new FormControl('', {
@@ -250,23 +247,8 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.usersArray.at(i).enable();
   }
 
-  removeColumn(i: number, j: number) {
+  onRemoveColumn(i: number, j: number) {
     this.getChildren(i).removeAt(j);
-  }
-
-  chunkChildren(
-    children: Array<Partial<{ column: string; value: string }>>,
-    size: number
-  ): { column: string; value: string }[][] {
-    const chunks: { column: string; value: string }[][] = [];
-    for (let i = 0; i < children.length; i += size) {
-      const safeSlice = children.slice(i, i + size).map((c) => ({
-        column: c.column ?? '',
-        value: c.value ?? '',
-      }));
-      chunks.push(safeSlice);
-    }
-    return chunks;
   }
 
   onRoleChange() {
@@ -337,6 +319,21 @@ export class UserListComponent implements OnInit, OnDestroy {
     return classes[role] || '';
   }
 
+  chunkChildren(
+    children: Array<Partial<{ column: string; value: string }>>,
+    size: number
+  ): { column: string; value: string }[][] {
+    const chunks: { column: string; value: string }[][] = [];
+    for (let i = 0; i < children.length; i += size) {
+      const safeSlice = children.slice(i, i + size).map((c) => ({
+        column: c.column ?? '',
+        value: c.value ?? '',
+      }));
+      chunks.push(safeSlice);
+    }
+    return chunks;
+  }
+
   private updateUrl() {
     this.router.navigate([], {
       relativeTo: this.activatedRoute,
@@ -381,7 +378,6 @@ export class UserListComponent implements OnInit, OnDestroy {
       } else {
         this.statusFilter = StatusTypeEnum.active;
       }
-
       if (params['role'] && params['role'] !== 'all') {
         this.roleFilter = +params['role'];
       } else {

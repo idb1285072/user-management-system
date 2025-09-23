@@ -31,9 +31,7 @@ export class UserEditComponent implements OnInit {
 
   onSubmit() {
     if (this.userForm.invalid) return;
-
     const user: UserInterface = this.userForm.getRawValue();
-
     if (this.isEditMode) {
       this.userService.updateUser(user);
       alert('User updated successfully!');
@@ -47,6 +45,7 @@ export class UserEditComponent implements OnInit {
   onCancel() {
     this.router.navigate(['/users']);
   }
+
   private initEditForm(): void {
     this.userForm = this.fb.group({
       id: this.fb.control(0),

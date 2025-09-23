@@ -36,7 +36,7 @@
       </select>
     </div>
 
-    <button class="btn btn-warning" (click)="enableBulkMode()">
+    <button class="btn btn-warning" (click)="onEnableBulkMode()">
       Bulk Update
     </button>
     <button
@@ -59,7 +59,6 @@
     />
   </div>
 
-  <!-- Table -->
   <form [formGroup]="usersForm">
     <table class="table table-striped table-hover table-bordered">
       <thead class="table-dark">
@@ -435,6 +434,14 @@
                 >
                   Cancel
                 </button>
+                <button
+                  *ngIf="inlineEditIndex !== i"
+                  type="button"
+                  class="btn btn-info btn-sm m-1"
+                  (click)="onStartAddColumn(displayedUsers[i])"
+                >
+                  Add Column
+                </button>
               </ng-container>
               <button
                 *ngIf="!row.get('isActive')?.value"
@@ -443,13 +450,6 @@
                 (click)="onDeleteUser(displayedUsers[i])"
               >
                 Delete
-              </button>
-              <button
-                type="button"
-                class="btn btn-info btn-sm m-1"
-                (click)="startAddColumn(displayedUsers[i])"
-              >
-                Add Column
               </button>
             </td>
           </tr>
@@ -508,7 +508,7 @@
                     *ngIf="isBulkMode || inlineEditIndex === i"
                     type="button"
                     class="btn btn-sm btn-danger"
-                    (click)="removeColumn(i, j)"
+                    (click)="onRemoveColumn(i, j)"
                   >
                     remove
                   </button>
@@ -518,7 +518,7 @@
                 *ngIf="isBulkMode || inlineEditIndex === i"
                 type="button"
                 class="btn btn-outline-primary btn-sm"
-                (click)="addColumn(i)"
+                (click)="onAddColumn(i)"
               >
                 Add Column
               </button>
@@ -547,10 +547,16 @@
   </form>
 
   <div *ngIf="isBulkMode">
-    <button class="btn btn-success me-2" (click)="saveBulkMode()">
+    <button
+      class="btn btn-success me-2"
+      (click)="onSaveBulkMode()"
+      [disabled]="usersForm.invalid"
+    >
       Save All
     </button>
-    <button class="btn btn-secondary" (click)="cancelBulkMode()">Cancel</button>
+    <button class="btn btn-secondary" (click)="onCancelBulkMode()">
+      Cancel
+    </button>
   </div>
 
   <!-- Pagination -->

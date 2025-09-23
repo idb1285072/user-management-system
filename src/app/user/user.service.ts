@@ -28,13 +28,11 @@ export class UserService {
   ): { users: UserInterface[]; totalUsers: number } {
     let filtered = [...this.users];
 
-    // Status filter
     if (status === StatusTypeEnum.active)
       filtered = filtered.filter((u) => u.isActive);
     else if (status === StatusTypeEnum.inactive)
       filtered = filtered.filter((u) => !u.isActive);
 
-    // Search filter
     if (searchText) {
       const lower = searchText.trim().toLowerCase();
       filtered = filtered.filter(
@@ -45,7 +43,6 @@ export class UserService {
       );
     }
 
-    // Role filter
     if (roleFilter !== 'all') {
       filtered = filtered.filter((u) => {
         return u.role === roleFilter;
