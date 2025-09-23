@@ -49,7 +49,6 @@ export class UserService {
       });
     }
 
-    console.log(filtered, typeof roleFilter, typeof UserTypeEnum.SuperAdmin);
     const totalUsers = filtered.length;
     const start = (page - 1) * itemsPerPage;
     const paginatedUsers = filtered.slice(start, start + itemsPerPage);
