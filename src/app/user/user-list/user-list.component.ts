@@ -4,13 +4,7 @@ import { UserService } from '../user.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PaginationEvent } from 'src/app/shared/pagination/pagination.component';
 
-import {
-  debounceTime,
-  distinctUntilChanged,
-  Subject,
-  Subscription,
-  takeUntil,
-} from 'rxjs';
+import { debounceTime, distinctUntilChanged, Subject, takeUntil } from 'rxjs';
 import { UserInterface } from '../types/user.interface';
 import { UserTypeEnum } from '../types/enums/user-type.enum';
 import { StatusTypeEnum } from '../types/enums/status-type.enum';
