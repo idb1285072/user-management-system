@@ -9,6 +9,7 @@ import {
   distinctUntilChanged,
   Subject,
   Subscription,
+  takeUntil,
 } from 'rxjs';
 import { UserInterface } from '../types/user.interface';
 import { UserTypeEnum } from '../types/enums/user-type.enum';
@@ -26,8 +27,7 @@ import { UserFormInterface } from '../types/user-form.interface';
 })
 export class UserListComponent implements OnInit, OnDestroy {
   private searchSubject$ = new Subject<string>();
-  private searchSubscription?: Subscription;
-  private queryParamSubscription?: Subscription;
+  private destroy$ = new Subject<void>();
   displayedUsers: UserInterface[] = [];
   totalUsers: number = 0;
   isBulkUpdate: boolean = false;
@@ -379,8 +379,9 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   private initQueryParam() {
-    this.queryParamSubscription = this.activatedRoute.queryParams.subscribe(
-      (params) => {
+    this.activatedRoute.queryParams
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((params) => {
         this.currentPage = +params['page'] || 1;
         this.itemsPerPage = +params['itemsPerPage'] || 5;
         this.searchTerm = params['search'] || '';
@@ -396,13 +397,16 @@ export class UserListComponent implements OnInit, OnDestroy {
           this.roleFilter = 'all';
         }
         this.refreshDisplayedUsers();
-      }
-    );
+      });
   }
 
   private initSearchSubscription() {
-    this.searchSubscription = this.searchSubject$
-      .pipe(debounceTime(1000), distinctUntilChanged())
+    this.searchSubject$
+      .pipe(
+        debounceTime(1000),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
       .subscribe((text) => {
         this.searchTerm = text;
         this.reload(true);
@@ -505,7 +509,7 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.searchSubscription?.unsubscribe();
-    this.queryParamSubscription?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
