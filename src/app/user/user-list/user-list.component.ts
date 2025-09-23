@@ -66,10 +66,6 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.initSearchSubscription();
   }
 
-  onCancelColumn() {
-    this.addColumnUserId = null;
-  }
-
   onSaveColumn(user: UserInterface) {
     if (this.addColumnForm.invalid) return;
 
@@ -98,6 +94,10 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.userService.updateUser(updatedUser);
     this.addColumnUserId = null;
     this.refreshDisplayedUsers();
+  }
+
+  onCancelColumn() {
+    this.addColumnUserId = null;
   }
 
   onCellDblClick(rowIndex: number, field: string) {
