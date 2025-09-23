@@ -88,7 +88,7 @@
               <input
                 *ngIf="
                   isBulkMode ||
-                  inlineEditIndex === i ||
+                  inlineEditIndexes.has(i) ||
                   (editingCell?.rowIndex === i && editingCell?.field === 'name')
                 "
                 class="form-control form-control-sm"
@@ -98,7 +98,7 @@
               <span
                 *ngIf="
                   !isBulkMode &&
-                  inlineEditIndex !== i &&
+                  !inlineEditIndexes.has(i) &&
                   !(
                     editingCell?.rowIndex === i && editingCell?.field === 'name'
                   )
@@ -118,7 +118,7 @@
               <input
                 *ngIf="
                   isBulkMode ||
-                  inlineEditIndex === i ||
+                  inlineEditIndexes.has(i) ||
                   (editingCell?.rowIndex === i && editingCell?.field === 'age')
                 "
                 type="number"
@@ -129,7 +129,7 @@
               <span
                 *ngIf="
                   !isBulkMode &&
-                  inlineEditIndex !== i &&
+                  !inlineEditIndexes.has(i) &&
                   !(editingCell?.rowIndex === i && editingCell?.field === 'age')
                 "
               >
@@ -167,7 +167,7 @@
               <input
                 *ngIf="
                   isBulkMode ||
-                  inlineEditIndex === i ||
+                  inlineEditIndexes.has(i) ||
                   (editingCell?.rowIndex === i &&
                     editingCell?.field === 'email')
                 "
@@ -179,7 +179,7 @@
               <span
                 *ngIf="
                   !isBulkMode &&
-                  inlineEditIndex !== i &&
+                  !inlineEditIndexes.has(i) &&
                   !(
                     editingCell?.rowIndex === i &&
                     editingCell?.field === 'email'
@@ -222,7 +222,7 @@
               <input
                 *ngIf="
                   isBulkMode ||
-                  inlineEditIndex === i ||
+                  inlineEditIndexes.has(i) ||
                   (editingCell?.rowIndex === i &&
                     editingCell?.field === 'phone')
                 "
@@ -233,7 +233,7 @@
               <span
                 *ngIf="
                   !isBulkMode &&
-                  inlineEditIndex !== i &&
+                  !inlineEditIndexes.has(i) &&
                   !(
                     editingCell?.rowIndex === i &&
                     editingCell?.field === 'phone'
@@ -248,7 +248,7 @@
               <input
                 *ngIf="
                   isBulkMode ||
-                  inlineEditIndex === i ||
+                  inlineEditIndexes.has(i) ||
                   (editingCell?.rowIndex === i &&
                     editingCell?.field === 'address')
                 "
@@ -259,7 +259,7 @@
               <span
                 *ngIf="
                   !isBulkMode &&
-                  inlineEditIndex !== i &&
+                  !inlineEditIndexes.has(i) &&
                   !(
                     editingCell?.rowIndex === i &&
                     editingCell?.field === 'address'
@@ -284,7 +284,7 @@
                 type="date"
                 *ngIf="
                   isBulkMode ||
-                  inlineEditIndex === i ||
+                  inlineEditIndexes.has(i) ||
                   (editingCell?.rowIndex === i &&
                     editingCell?.field === 'registeredDate')
                 "
@@ -295,7 +295,7 @@
               <span
                 *ngIf="
                   !isBulkMode &&
-                  inlineEditIndex !== i &&
+                  !inlineEditIndexes.has(i) &&
                   !(
                     editingCell?.rowIndex === i &&
                     editingCell?.field === 'registeredDate'
@@ -319,7 +319,7 @@
               <select
                 *ngIf="
                   isBulkMode ||
-                  inlineEditIndex === i ||
+                  inlineEditIndexes.has(i) ||
                   (editingCell?.rowIndex === i && editingCell?.field === 'role')
                 "
                 (blur)="onCellBlur(i, 'role')"
@@ -333,7 +333,7 @@
               <span
                 *ngIf="
                   !isBulkMode &&
-                  inlineEditIndex !== i &&
+                  !inlineEditIndexes.has(i) &&
                   !(
                     editingCell?.rowIndex === i && editingCell?.field === 'role'
                   )
@@ -358,7 +358,7 @@
               <select
                 *ngIf="
                   isBulkMode ||
-                  inlineEditIndex === i ||
+                  inlineEditIndexes.has(i) ||
                   (editingCell?.rowIndex === i &&
                     editingCell?.field === 'isActive')
                 "
@@ -373,7 +373,7 @@
               <span
                 *ngIf="
                   !isBulkMode &&
-                  inlineEditIndex !== i &&
+                  !inlineEditIndexes.has(i) &&
                   !(
                     editingCell?.rowIndex === i &&
                     editingCell?.field === 'isActive'
@@ -392,7 +392,7 @@
             <td>
               <ng-container *ngIf="!isBulkMode">
                 <button
-                  *ngIf="inlineEditIndex !== i"
+                  *ngIf="!inlineEditIndexes.has(i)"
                   type="button"
                   class="btn btn-sm m-1"
                   [ngClass]="
@@ -405,13 +405,15 @@
                 <button
                   type="button"
                   class="btn btn-sm btn-warning m-1"
-                  *ngIf="row.get('isActive')?.value && inlineEditIndex !== i"
+                  *ngIf="
+                    row.get('isActive')?.value && !inlineEditIndexes.has(i)
+                  "
                   (click)="onEditUser(displayedUsers[i])"
                 >
                   Edit
                 </button>
                 <button
-                  *ngIf="inlineEditIndex !== i"
+                  *ngIf="!inlineEditIndexes.has(i)"
                   type="button"
                   class="btn btn-primary btn-sm m-1"
                   (click)="onInlineEdit(i)"
@@ -419,23 +421,24 @@
                   Inline edit
                 </button>
                 <button
-                  *ngIf="inlineEditIndex === i"
+                  *ngIf="inlineEditIndexes.has(i)"
                   type="button"
                   class="btn btn-success btn-sm m-1"
                   (click)="onSaveInlineEdit(i)"
+                  [disabled]="usersArray.at(i).invalid"
                 >
                   Save
                 </button>
                 <button
-                  *ngIf="inlineEditIndex === i"
+                  *ngIf="inlineEditIndexes.has(i)"
                   type="button"
                   class="btn btn-secondary btn-sm m-1"
-                  (click)="onCancelInlineEdit()"
+                  (click)="onCancelInlineEdit(i)"
                 >
                   Cancel
                 </button>
                 <button
-                  *ngIf="inlineEditIndex !== i"
+                  *ngIf="!inlineEditIndexes.has(i)"
                   type="button"
                   class="btn btn-info btn-sm m-1"
                   (click)="onStartAddColumn(displayedUsers[i])"
@@ -475,6 +478,7 @@
                 <button
                   class="btn btn-success me-2"
                   (click)="onSaveColumn(displayedUsers[i])"
+                  [disabled]="addColumnForm.invalid"
                 >
                   Save
                 </button>
@@ -482,40 +486,82 @@
                   Cancel
                 </button>
               </div>
+              <span
+                class="text-danger mb-2"
+                *ngIf="
+                  addColumnForm.get('column')?.touched &&
+                  addColumnForm.get('column')?.hasError('required')
+                "
+                style="font-size: x-small"
+              >
+                Column is required
+              </span>
+              <span
+                class="text-danger mb-2"
+                *ngIf="
+                  addColumnForm.get('value')?.touched &&
+                  addColumnForm.get('value')?.hasError('required')
+                "
+                style="font-size: x-small"
+              >
+                Value is required
+              </span>
             </td>
           </tr>
+
           <!-- Children add -->
-          <tr *ngIf="inlineEditIndex === i || isBulkMode">
+          <tr *ngIf="inlineEditIndexes.has(i) || isBulkMode">
             <td></td>
             <td colspan="9">
               <div formArrayName="children">
                 <div
                   *ngFor="let c of getChildren(i).controls; let j = index"
                   [formGroupName]="j"
-                  class="d-flex mb-1 gap-1"
                 >
-                  <input
-                    class="form-control form-control-sm"
-                    placeholder="Column"
-                    formControlName="column"
-                  />
-                  <input
-                    class="form-control form-control-sm"
-                    placeholder="Value"
-                    formControlName="value"
-                  />
-                  <button
-                    *ngIf="isBulkMode || inlineEditIndex === i"
-                    type="button"
-                    class="btn btn-sm btn-danger"
-                    (click)="onRemoveColumn(i, j)"
+                  <div class="d-flex mb-1 gap-1">
+                    <input
+                      class="form-control form-control-sm"
+                      placeholder="Column"
+                      formControlName="column"
+                    />
+                    <input
+                      class="form-control form-control-sm"
+                      placeholder="Value"
+                      formControlName="value"
+                    />
+                    <button
+                      *ngIf="isBulkMode || inlineEditIndexes.has(i)"
+                      type="button"
+                      class="btn btn-sm btn-danger"
+                      (click)="onRemoveColumn(i, j)"
+                    >
+                      remove
+                    </button>
+                  </div>
+                  <span
+                    class="text-danger mb-2"
+                    *ngIf="
+                      c.get('column')?.touched &&
+                      c.get('column')?.hasError('required')
+                    "
+                    style="font-size: x-small"
                   >
-                    remove
-                  </button>
+                    Column is required
+                  </span>
+                  <span
+                    class="text-danger mb-2"
+                    *ngIf="
+                      c.get('value')?.touched &&
+                      c.get('value')?.hasError('required')
+                    "
+                    style="font-size: x-small"
+                  >
+                    Value is required
+                  </span>
                 </div>
               </div>
               <button
-                *ngIf="isBulkMode || inlineEditIndex === i"
+                *ngIf="isBulkMode || inlineEditIndexes.has(i)"
                 type="button"
                 class="btn btn-outline-primary btn-sm"
                 (click)="onAddColumn(i)"
@@ -532,7 +578,9 @@
             <tr *ngFor="let chunk of chunkChildren(getChildren(i).value, 8)">
               <td></td>
               <td *ngFor="let child of chunk">
-                <strong>{{ child.column }}:</strong> {{ child.value }}
+                <ng-container *ngIf="child.column">
+                  <strong>{{ child.column }}:</strong> {{ child.value }}
+                </ng-container>
               </td>
               <td *ngFor="let empty of [].constructor(8 - chunk.length)"></td>
               <td></td>

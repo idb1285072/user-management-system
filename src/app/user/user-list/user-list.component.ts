@@ -34,7 +34,7 @@ export class UserListComponent implements OnInit, OnDestroy {
   addColumnForm!: FormGroup<ChildUserFormInterface>;
   usersForm!: FormGroup<UsersFormInterface>;
 
-  inlineEditIndex: number | null = null;
+  inlineEditIndexes: Set<number> = new Set<number>();
   isBulkMode = false;
   addColumnUserId: number | null = null;
 
@@ -64,40 +64,6 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.buildUsersForm();
     this.initQueryParam();
     this.initSearchSubscription();
-  }
-
-  onSaveColumn(user: UserInterface) {
-    if (this.addColumnForm.invalid) return;
-
-    const child = this.addColumnForm.getRawValue();
-
-    const userIndex = this.displayedUsers.findIndex((u) => u.id === user.id);
-    if (userIndex === -1) return;
-
-    const childrenArray = this.getChildren(userIndex);
-    childrenArray.push(
-      new FormGroup({
-        column: new FormControl(child.column, {
-          nonNullable: true,
-          validators: Validators.required,
-        }),
-        value: new FormControl(child.value, {
-          nonNullable: true,
-          validators: Validators.required,
-        }),
-      })
-    );
-    const updatedUser = {
-      ...this.displayedUsers[userIndex],
-      ...this.usersArray.at(userIndex).getRawValue(),
-    };
-    this.userService.updateUser(updatedUser);
-    this.addColumnUserId = null;
-    this.refreshDisplayedUsers();
-  }
-
-  onCancelColumn() {
-    this.addColumnUserId = null;
   }
 
   onCellDblClick(rowIndex: number, field: string) {
@@ -130,12 +96,6 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.editingCell = null;
   }
 
-  getChildren(i: number): FormArray<FormGroup<ChildUserFormInterface>> {
-    return this.usersArray.at(i).get('children') as FormArray<
-      FormGroup<ChildUserFormInterface>
-    >;
-  }
-
   onCellKeydown(event: KeyboardEvent, rowIndex: number, field: string) {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -151,24 +111,39 @@ export class UserListComponent implements OnInit, OnDestroy {
   }
 
   onInlineEdit(i: number) {
-    this.inlineEditIndex = i;
+    this.inlineEditIndexes.add(i);
   }
 
-  onCancelInlineEdit() {
-    if (this.inlineEditIndex !== null) {
-      const idx = this.inlineEditIndex;
-      this.usersArray.at(idx).reset(this.displayedUsers[idx]);
-      this.inlineEditIndex = null;
-    }
+  onCancelInlineEdit(i: number) {
+    const group = this.usersArray.at(i);
+    const original = this.displayedUsers[i];
+    group.patchValue({
+      name: original.name,
+      age: original.age,
+      email: original.email,
+      phone: original.phone,
+      address: original.address,
+      registeredDate: original.registeredDate,
+      role: original.role,
+      isActive: original.isActive,
+    });
+    this.resetChildrenArray(
+      group.get('children') as FormArray<FormGroup<ChildUserFormInterface>>,
+      original.children ?? []
+    );
+
+    group.markAsPristine();
+    this.inlineEditIndexes.delete(i);
   }
 
   onSaveInlineEdit(i: number) {
-    const g = this.usersArray.at(i);
-    if (g.invalid) return;
-    const updated = { ...this.displayedUsers[i], ...g.getRawValue() };
+    const group = this.usersArray.at(i);
+    if (group.invalid) return;
+    const updated = { ...this.displayedUsers[i], ...group.getRawValue() };
     this.userService.updateUser(updated);
-    this.inlineEditIndex = null;
-    this.refreshDisplayedUsers();
+    this.displayedUsers[i] = updated;
+    group.markAsPristine();
+    this.inlineEditIndexes.delete(i);
   }
 
   onEnableBulkMode() {
@@ -251,6 +226,38 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.getChildren(i).removeAt(j);
   }
 
+  onSaveColumn(user: UserInterface) {
+    console.log(this.addColumnForm.hasError('required'));
+    if (this.addColumnForm.invalid) return;
+    const child = this.addColumnForm.getRawValue();
+    const userIndex = this.displayedUsers.findIndex((u) => u.id === user.id);
+    if (userIndex === -1) return;
+    const childrenArray = this.getChildren(userIndex);
+    childrenArray.push(
+      new FormGroup({
+        column: new FormControl(child.column, {
+          nonNullable: true,
+          validators: Validators.required,
+        }),
+        value: new FormControl(child.value, {
+          nonNullable: true,
+          validators: Validators.required,
+        }),
+      })
+    );
+    const updatedUser = {
+      ...this.displayedUsers[userIndex],
+      ...this.usersArray.at(userIndex).getRawValue(),
+    };
+    this.userService.updateUser(updatedUser);
+    this.addColumnUserId = null;
+    this.refreshDisplayedUsers();
+  }
+
+  onCancelColumn() {
+    this.addColumnUserId = null;
+  }
+
   onRoleChange() {
     this.reload(true);
   }
@@ -300,6 +307,12 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.currentPage = event.currentPage;
     this.refreshDisplayedUsers();
     this.updateUrl();
+  }
+
+  getChildren(i: number): FormArray<FormGroup<ChildUserFormInterface>> {
+    return this.usersArray.at(i).get('children') as FormArray<
+      FormGroup<ChildUserFormInterface>
+    >;
   }
 
   getRoleName(role: UserTypeEnum) {
@@ -461,6 +474,27 @@ export class UserListComponent implements OnInit, OnDestroy {
     const userGroups = this.displayedUsers.map((u) => this.buildUserGroup(u));
     this.usersForm = new FormGroup<UsersFormInterface>({
       users: new FormArray(userGroups),
+    });
+  }
+
+  private resetChildrenArray(
+    array: FormArray<FormGroup<ChildUserFormInterface>>,
+    original: { column: string; value: string }[]
+  ) {
+    array.clear();
+    original.forEach((c) => {
+      array.push(
+        new FormGroup<ChildUserFormInterface>({
+          column: new FormControl(c.column, {
+            nonNullable: true,
+            validators: Validators.required,
+          }),
+          value: new FormControl(c.value, {
+            nonNullable: true,
+            validators: Validators.required,
+          }),
+        })
+      );
     });
   }
 
