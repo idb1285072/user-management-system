@@ -53,9 +53,7 @@
       type="text"
       class="form-control"
       placeholder="Search by name, email or phone..."
-      [(ngModel)]="searchTerm"
-      (ngModelChange)="onSearchChange($event)"
-      [disabled]="isBulkUpdate"
+      [formControl]="searchControl"
     />
   </div>
 
