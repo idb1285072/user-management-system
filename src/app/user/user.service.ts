@@ -16,7 +16,9 @@ export class UserService {
   }
 
   getAllEmails(): string[] {
-    return this.users.map((user: UserInterface) => user.email.trim());
+    return this.users.map((user: UserInterface) =>
+      user.email.toLowerCase().trim()
+    );
   }
 
   getPaginatedUsers(

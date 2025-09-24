@@ -99,14 +99,13 @@ export class UserListComponent implements OnInit, OnDestroy {
 
   onEnableBulkMode() {
     this.isBulkMode = true;
-
     this.usersArray.controls.forEach((formGroup) => {
       const emailControl = formGroup.get('email');
       emailControl?.setValidators([Validators.required, Validators.email]);
       emailControl?.updateValueAndValidity();
     });
     this.usersForm.setValidators(
-      bulkUniqueEmailValidator(this.userService, this.userEmail)
+      bulkUniqueEmailValidator(this.userService, this.displayedUserEmails)
     );
     this.usersForm.updateValueAndValidity();
   }
@@ -515,7 +514,7 @@ export class UserListComponent implements OnInit, OnDestroy {
     >;
   }
 
-  get userEmail() {
+  get displayedUserEmails() {
     return this.displayedUsers.map((user) => user.email);
   }
 
