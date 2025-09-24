@@ -15,38 +15,37 @@ export function bulkUniqueEmailValidator(
     const formArray = control.get('users') as FormArray;
     if (!formArray) return null;
 
-    const pageEmails = currentEmails
-      .map((email) => email.toLowerCase())
-      .filter((email) => email);
+    const pageEmails = new Set(currentEmails.map((e) => e.toLowerCase()));
+    const allEmails = userService.getAllEmails().map((e) => e.toLowerCase());
 
-    const emails: string[] = formArray.controls.map(
-      (c) => c.get('email')?.value?.toLowerCase() || ''
+    const storedEmails = allEmails.filter((e) => !pageEmails.has(e));
+
+    const emailsInForm = formArray.controls.map(
+      (group) => group.get('email')?.value?.toLowerCase() || ''
     );
 
-    const usersEmail: string[] = userService.getAllEmails();
-
-    const storedEmails = usersEmail.filter((e) => !pageEmails.includes(e));
-
-    const duplicatesInForm = emails.filter(
-      (email, index) => emails.indexOf(email) !== index && email
+    const duplicatesInForm = emailsInForm.filter(
+      (email, i) => email && emailsInForm.indexOf(email) !== i
     );
 
-    formArray.controls.forEach((group: AbstractControl) => {
-      const emailControl = (group as FormGroup).get('email');
+    formArray.controls.forEach((group) => {
+      const emailControl = group.get('email');
       if (!emailControl) return;
 
-      const email = emailControl.value?.toLowerCase() || '';
-      const errors: ValidationErrors = { ...emailControl.errors };
+      const email = (emailControl.value || '').toLowerCase();
+      const hasConflict =
+        duplicatesInForm.includes(email) || storedEmails.includes(email);
 
-      delete errors['notUniqueEmail'];
-
-      if (duplicatesInForm.includes(email) || storedEmails.includes(email)) {
-        errors['notUniqueEmail'] = true;
-      }
-
-      emailControl.setErrors(Object.keys(errors).length ? errors : null);
+      emailControl.setErrors(
+        hasConflict
+          ? { ...emailControl.errors, notUniqueEmail: true }
+          : Object.keys(emailControl.errors || {}).filter(
+              (k) => k !== 'notUniqueEmail'
+            ).length
+          ? emailControl.errors
+          : null
+      );
     });
-
     return null;
   };
 }
