@@ -388,7 +388,6 @@
               </span>
             </td>
 
-            <!-- Actions -->
             <td>
               <ng-container *ngIf="!isBulkMode">
                 <button
@@ -458,14 +457,6 @@
               >
                 Delete
               </button>
-              <!-- <button
-                *ngIf="isBulkMode || inlineEditIndexes.has(i)"
-                class="btn btn-danger btn-sm m-1"
-                type="button"
-                (click)="onDeleteUser(displayedUsers[i])"
-              >
-                Delete
-              </button> -->
             </td>
           </tr>
           <tr
@@ -521,7 +512,6 @@
             </td>
           </tr>
 
-          <!-- Children add -->
           <tr *ngIf="inlineEditIndexes.has(i) || isBulkMode">
             <td></td>
             <td colspan="9">
@@ -619,7 +609,6 @@
     </button>
   </div>
 
-  <!-- Pagination -->
   <app-pagination
     [totalItems]="totalUsers"
     [itemsPerPage]="itemsPerPage"

@@ -45,8 +45,4 @@ export class PaginationComponent {
   get totalPages(): number {
     return Math.ceil(this.totalItems / this.itemsPerPage) || 1;
   }
-
-  // get pages(): number[] {
-  //   return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  // }
 }
