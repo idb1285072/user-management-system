@@ -13,6 +13,7 @@ import { uniqueEmailValidator } from 'src/app/shared/validators/unique-email.val
 import { UsersFormInterface } from '../types/users-form.interface';
 import { ChildUserFormInterface } from '../types/child-user-form.interface';
 import { UserFormInterface } from '../types/user-form.interface';
+import { bulkUniqueEmailValidator } from 'src/app/shared/validators/bulk-unique-email.validator';
 
 @Component({
   selector: 'app-user-list',
@@ -98,30 +99,16 @@ export class UserListComponent implements OnInit, OnDestroy {
 
   onEnableBulkMode() {
     this.isBulkMode = true;
-    this.usersArray.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.usersArray.controls.forEach((ctrl) => {
-          ctrl
-            .get('email')
-            ?.updateValueAndValidity({ onlySelf: true, emitEvent: false });
-        });
-      });
-    this.usersArray.controls.forEach((ctrl) => {
-      const emailControl = ctrl.get('email')!;
-      const originalEmail = emailControl.value;
-      emailControl.setValidators([
-        Validators.required,
-        Validators.email,
-        uniqueEmailValidator(
-          this.userService,
-          originalEmail,
-          this.usersArray,
-          emailControl
-        ),
-      ]);
-      emailControl.updateValueAndValidity({ emitEvent: false });
+
+    this.usersArray.controls.forEach((formGroup) => {
+      const emailControl = formGroup.get('email');
+      emailControl?.setValidators([Validators.required, Validators.email]);
+      emailControl?.updateValueAndValidity();
     });
+    this.usersForm.setValidators(
+      bulkUniqueEmailValidator(this.userService, this.userEmail)
+    );
+    this.usersForm.updateValueAndValidity();
   }
 
   onCancelBulkMode() {
@@ -526,6 +513,10 @@ export class UserListComponent implements OnInit, OnDestroy {
     return this.usersForm.get('users') as FormArray<
       FormGroup<UserFormInterface>
     >;
+  }
+
+  get userEmail() {
+    return this.displayedUsers.map((user) => user.email);
   }
 
   ngOnDestroy(): void {
