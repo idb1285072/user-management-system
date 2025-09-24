@@ -10,6 +10,8 @@ import { NotFoundComponent } from './shared/not-found/not-found.component';
 import { PaginationComponent } from './shared/pagination/pagination.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RangePipe } from './shared/pipes/range.pipe';
+import { UserFiltersComponent } from './user/user-list/user-filters/user-filters.component';
+import { UserTableComponent } from './user/user-list/user-table/user-table.component';
 
 @NgModule({
   declarations: [
@@ -20,6 +22,8 @@ import { RangePipe } from './shared/pipes/range.pipe';
     NotFoundComponent,
     PaginationComponent,
     RangePipe,
+    UserFiltersComponent,
+    UserTableComponent,
   ],
   imports: [BrowserModule, AppRoutingModule, FormsModule, ReactiveFormsModule],
   providers: [],

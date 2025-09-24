@@ -1,0 +1,535 @@
+<form [formGroup]="usersForm">
+  <table class="table table-striped table-hover table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Age</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Address</th>
+        <th>Registered Date</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+
+    <tbody formArrayName="users">
+      <ng-container
+        *ngFor="let row of usersArray.controls; let i = index"
+        [formGroupName]="i"
+      >
+        <tr>
+          <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+
+          <!-- Name -->
+          <td (dblclick)="onCellDblClick(i, 'name')">
+            <input
+              *ngIf="
+                isBulkMode ||
+                inlineEditIndexes.has(i) ||
+                (editingCell?.rowIndex === i && editingCell?.field === 'name')
+              "
+              class="form-control form-control-sm"
+              formControlName="name"
+              (blur)="onCellBlur(i, 'name')"
+              (keydown)="onCellKeydown($event, i, 'name')"
+            />
+            <span
+              *ngIf="
+                !isBulkMode &&
+                !inlineEditIndexes.has(i) &&
+                !(editingCell?.rowIndex === i && editingCell?.field === 'name')
+              "
+            >
+              {{ row.get("name")?.value }}
+            </span>
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="row.get('name')?.touched && row.get('name')?.invalid"
+            >
+              Name is required.
+            </span>
+          </td>
+
+          <!-- Age -->
+          <td (dblclick)="onCellDblClick(i, 'age')">
+            <input
+              *ngIf="
+                isBulkMode ||
+                inlineEditIndexes.has(i) ||
+                (editingCell?.rowIndex === i && editingCell?.field === 'age')
+              "
+              type="number"
+              class="form-control form-control-sm"
+              formControlName="age"
+              (blur)="onCellBlur(i, 'age')"
+              (keydown)="onCellKeydown($event, i, 'age')"
+            />
+            <span
+              *ngIf="
+                !isBulkMode &&
+                !inlineEditIndexes.has(i) &&
+                !(editingCell?.rowIndex === i && editingCell?.field === 'age')
+              "
+            >
+              {{ row.get("age")?.value }}
+            </span>
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="
+                row.get('age')?.touched && row.get('age')?.getError('required')
+              "
+              >Age is required.</span
+            >
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="row.get('age')?.touched && row.get('age')?.getError('min')"
+              >Age must be at least 18.</span
+            >
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="row.get('age')?.touched && row.get('age')?.getError('max')"
+              >Age must be max 120 years.</span
+            >
+          </td>
+
+          <!-- Email -->
+          <td (dblclick)="onCellDblClick(i, 'email')">
+            <input
+              *ngIf="
+                isBulkMode ||
+                inlineEditIndexes.has(i) ||
+                (editingCell?.rowIndex === i && editingCell?.field === 'email')
+              "
+              type="email"
+              class="form-control form-control-sm"
+              formControlName="email"
+              (blur)="onCellBlur(i, 'email')"
+              (keydown)="onCellKeydown($event, i, 'email')"
+            />
+            <span
+              *ngIf="
+                !isBulkMode &&
+                !inlineEditIndexes.has(i) &&
+                !(editingCell?.rowIndex === i && editingCell?.field === 'email')
+              "
+            >
+              {{ row.get("email")?.value }}
+            </span>
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="
+                row.get('email')?.touched &&
+                row.get('email')?.getError('notUniqueEmail')
+              "
+              >Email already exists. Please choose another.</span
+            >
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="
+                row.get('email')?.touched &&
+                row.get('email')?.getError('required')
+              "
+              >Email is required.</span
+            >
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="
+                row.get('email')?.touched && row.get('email')?.getError('email')
+              "
+              >Enter a valid email format.</span
+            >
+          </td>
+
+          <!-- Phone -->
+          <td (dblclick)="onCellDblClick(i, 'phone')">
+            <input
+              *ngIf="
+                isBulkMode ||
+                inlineEditIndexes.has(i) ||
+                (editingCell?.rowIndex === i && editingCell?.field === 'phone')
+              "
+              class="form-control form-control-sm"
+              formControlName="phone"
+              (blur)="onCellBlur(i, 'phone')"
+            />
+            <span
+              *ngIf="
+                !isBulkMode &&
+                !inlineEditIndexes.has(i) &&
+                !(editingCell?.rowIndex === i && editingCell?.field === 'phone')
+              "
+            >
+              {{ row.get("phone")?.value }}
+            </span>
+          </td>
+
+          <!-- Address -->
+          <td (dblclick)="onCellDblClick(i, 'address')">
+            <input
+              *ngIf="
+                isBulkMode ||
+                inlineEditIndexes.has(i) ||
+                (editingCell?.rowIndex === i &&
+                  editingCell?.field === 'address')
+              "
+              class="form-control form-control-sm"
+              formControlName="address"
+              (blur)="onCellBlur(i, 'address')"
+            />
+            <span
+              *ngIf="
+                !isBulkMode &&
+                !inlineEditIndexes.has(i) &&
+                !(
+                  editingCell?.rowIndex === i &&
+                  editingCell?.field === 'address'
+                )
+              "
+            >
+              {{ row.get("address")?.value }}
+            </span>
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="
+                row.get('address')?.touched &&
+                row.get('address')?.getError('required')
+              "
+              >Address is required.</span
+            >
+          </td>
+
+          <!-- Registered Date -->
+          <td (dblclick)="onCellDblClick(i, 'registeredDate')">
+            <input
+              type="date"
+              *ngIf="
+                isBulkMode ||
+                inlineEditIndexes.has(i) ||
+                (editingCell?.rowIndex === i &&
+                  editingCell?.field === 'registeredDate')
+              "
+              class="form-control form-control-sm"
+              formControlName="registeredDate"
+              (blur)="onCellBlur(i, 'registeredDate')"
+            />
+            <span
+              *ngIf="
+                !isBulkMode &&
+                !inlineEditIndexes.has(i) &&
+                !(
+                  editingCell?.rowIndex === i &&
+                  editingCell?.field === 'registeredDate'
+                )
+              "
+            >
+              {{ row.get("registeredDate")?.value | date }}
+            </span>
+            <span
+              class="text-danger"
+              style="font-size: x-small"
+              *ngIf="
+                row.get('registeredDate')?.touched &&
+                row.get('registeredDate')?.getError('required')
+              "
+              >Registered Date is required.</span
+            >
+          </td>
+
+          <!-- Role -->
+          <td (dblclick)="onCellDblClick(i, 'role')">
+            <select
+              *ngIf="
+                isBulkMode ||
+                inlineEditIndexes.has(i) ||
+                (editingCell?.rowIndex === i && editingCell?.field === 'role')
+              "
+              (blur)="onCellBlur(i, 'role')"
+              class="form-select form-select-sm"
+              formControlName="role"
+            >
+              <option *ngFor="let role of roleOptions" [ngValue]="role">
+                {{ getRoleName(role) }}
+              </option>
+            </select>
+            <span
+              *ngIf="
+                !isBulkMode &&
+                !inlineEditIndexes.has(i) &&
+                !(editingCell?.rowIndex === i && editingCell?.field === 'role')
+              "
+              class="badge"
+              [ngClass]="getRoleClass(row.get('role')!.value)"
+              >{{ getRoleName(row.get("role")!.value) }}</span
+            >
+          </td>
+
+          <!-- Status -->
+          <td (dblclick)="onCellDblClick(i, 'isActive')">
+            <select
+              *ngIf="
+                isBulkMode ||
+                inlineEditIndexes.has(i) ||
+                (editingCell?.rowIndex === i &&
+                  editingCell?.field === 'isActive')
+              "
+              (blur)="onCellBlur(i, 'isActive')"
+              class="form-select form-select-sm"
+              formControlName="isActive"
+            >
+              <option [ngValue]="true">Active</option>
+              <option [ngValue]="false">Inactive</option>
+            </select>
+            <span
+              *ngIf="
+                !isBulkMode &&
+                !inlineEditIndexes.has(i) &&
+                !(
+                  editingCell?.rowIndex === i &&
+                  editingCell?.field === 'isActive'
+                )
+              "
+              class="badge"
+              [ngClass]="
+                row.get('isActive')?.value ? 'bg-success' : 'bg-danger'
+              "
+            >
+              {{ row.get("isActive")?.value ? "Active" : "Inactive" }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td>
+            <ng-container *ngIf="!isBulkMode">
+              <button
+                *ngIf="!inlineEditIndexes.has(i)"
+                type="button"
+                class="btn btn-sm m-1"
+                [ngClass]="
+                  row.get('isActive')?.value ? 'btn-danger' : 'btn-success'
+                "
+                (click)="onToggleStatus(displayedUsers[i])"
+              >
+                {{ row.get("isActive")?.value ? "Inactive" : "Active" }}
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-warning m-1"
+                *ngIf="row.get('isActive')?.value && !inlineEditIndexes.has(i)"
+                (click)="onEditUser(displayedUsers[i])"
+              >
+                Edit
+              </button>
+
+              <button
+                *ngIf="!inlineEditIndexes.has(i)"
+                type="button"
+                class="btn btn-primary btn-sm m-1"
+                (click)="onInlineEdit(i)"
+              >
+                Inline edit
+              </button>
+
+              <button
+                *ngIf="inlineEditIndexes.has(i)"
+                type="button"
+                class="btn btn-success btn-sm m-1"
+                (click)="onSaveInlineEdit(i)"
+                [disabled]="usersArray.at(i).invalid"
+              >
+                Save
+              </button>
+
+              <button
+                *ngIf="inlineEditIndexes.has(i)"
+                type="button"
+                class="btn btn-secondary btn-sm m-1"
+                (click)="onCancelInlineEdit(i)"
+              >
+                Cancel
+              </button>
+
+              <button
+                *ngIf="!inlineEditIndexes.has(i)"
+                type="button"
+                class="btn btn-info btn-sm m-1"
+                (click)="onStartAddColumn(displayedUsers[i])"
+              >
+                Add Column
+              </button>
+            </ng-container>
+
+            <button
+              *ngIf="
+                !row.get('isActive')?.value &&
+                !isBulkMode &&
+                !inlineEditIndexes.has(i)
+              "
+              class="btn btn-danger btn-sm m-1"
+              type="button"
+              (click)="onDeleteUser(displayedUsers[i])"
+            >
+              Delete
+            </button>
+          </td>
+        </tr>
+
+        <!-- add-column inline row -->
+        <tr
+          *ngIf="addColumnUserId === row.get('id')?.value"
+          [formGroup]="addColumnForm"
+        >
+          <td></td>
+          <td colspan="9">
+            <div class="d-flex">
+              <input
+                type="text"
+                placeholder="Column Name"
+                class="form-control me-2"
+                formControlName="column"
+              />
+              <input
+                type="text"
+                placeholder="Value"
+                class="form-control me-2"
+                formControlName="value"
+              />
+              <button
+                class="btn btn-success me-2"
+                (click)="onSaveColumn(displayedUsers[i])"
+                [disabled]="addColumnForm.invalid"
+              >
+                Save
+              </button>
+              <button class="btn btn-secondary" (click)="onCancelColumn()">
+                Cancel
+              </button>
+            </div>
+            <span
+              class="text-danger mb-2"
+              *ngIf="
+                addColumnForm?.get('column')?.touched &&
+                addColumnForm?.get('column')?.hasError('required')
+              "
+              style="font-size: x-small"
+              >Column is required</span
+            >
+            <span
+              class="text-danger mb-2"
+              *ngIf="
+                addColumnForm?.get('value')?.touched &&
+                addColumnForm?.get('value')?.hasError('required')
+              "
+              style="font-size: x-small"
+              >Value is required</span
+            >
+          </td>
+        </tr>
+
+        <!-- children inline editor (bulk or inline-edit) -->
+        <tr *ngIf="inlineEditIndexes.has(i) || isBulkMode">
+          <td></td>
+          <td colspan="9">
+            <div formArrayName="children">
+              <div
+                *ngFor="let c of getChildren(i).controls; let j = index"
+                [formGroupName]="j"
+              >
+                <div class="d-flex mb-1 gap-1">
+                  <input
+                    class="form-control form-control-sm"
+                    placeholder="Column"
+                    formControlName="column"
+                  />
+                  <input
+                    class="form-control form-control-sm"
+                    placeholder="Value"
+                    formControlName="value"
+                  />
+                  <button
+                    *ngIf="isBulkMode || inlineEditIndexes.has(i)"
+                    type="button"
+                    class="btn btn-sm btn-danger"
+                    (click)="onRemoveColumn(i, j)"
+                  >
+                    remove
+                  </button>
+                </div>
+                <span
+                  class="text-danger mb-2"
+                  *ngIf="
+                    c.get('column')?.touched &&
+                    c.get('column')?.hasError('required')
+                  "
+                  style="font-size: x-small"
+                  >Column is required</span
+                >
+                <span
+                  class="text-danger mb-2"
+                  *ngIf="
+                    c.get('value')?.touched &&
+                    c.get('value')?.hasError('required')
+                  "
+                  style="font-size: x-small"
+                  >Value is required</span
+                >
+              </div>
+            </div>
+
+            <button
+              *ngIf="isBulkMode || inlineEditIndexes.has(i)"
+              type="button"
+              class="btn btn-outline-primary btn-sm"
+              (click)="onAddColumn(i)"
+            >
+              Add Column
+            </button>
+          </td>
+        </tr>
+
+        <!-- children display rows -->
+        <ng-container
+          *ngIf="getChildren(i).controls && getChildren(i).controls.length > 0"
+        >
+          <tr *ngFor="let chunk of chunkChildren(getChildren(i).value, 8)">
+            <td></td>
+            <td *ngFor="let child of chunk">
+              <ng-container *ngIf="child.column">
+                <strong>{{ child.column }}:</strong> {{ child.value }}
+              </ng-container>
+            </td>
+            <td *ngFor="let empty of [].constructor(8 - chunk.length)"></td>
+            <td></td>
+          </tr>
+        </ng-container>
+      </ng-container>
+
+      <tr *ngIf="usersArray.length === 0">
+        <td colspan="11" class="text-center">No users found.</td>
+      </tr>
+    </tbody>
+  </table>
+</form>
+
+<!-- bulk mode controls -->
+<div *ngIf="isBulkMode">
+  <button
+    class="btn btn-success me-2"
+    (click)="onSaveBulkMode()"
+    [disabled]="usersForm.invalid"
+  >
+    Save All
+  </button>
+  <button class="btn btn-secondary" (click)="onCancelBulkMode()">Cancel</button>
+</div>
