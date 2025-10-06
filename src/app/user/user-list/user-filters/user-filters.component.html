@@ -26,7 +26,6 @@
       (ngModelChange)="onRoleChangeLocal($event)"
       [disabled]="isBulkMode"
     >
-      <option [ngValue]="'all'">All</option>
       <option *ngFor="let role of roleOptions" [ngValue]="role">
         {{ getRoleName(role) }}
       </option>

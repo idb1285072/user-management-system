@@ -309,6 +309,7 @@ export class UserTableComponent {
       [UserTypeEnum.Author]: 'bg-success',
       [UserTypeEnum.Contributor]: 'bg-secondary',
       [UserTypeEnum.User]: 'bg-light text-dark',
+      [UserTypeEnum.All]: ''
     };
     return classes[role] || '';
   }

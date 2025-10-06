@@ -23,7 +23,7 @@ export class UserListComponent implements OnInit, OnDestroy {
   currentPage = 1;
   itemsPerPage = 5;
   statusFilter: StatusTypeEnum = StatusTypeEnum.active;
-  roleFilter: UserTypeEnum | 'all' = 'all';
+  roleFilter: UserTypeEnum = UserTypeEnum.All;
   searchTerm = '';
 
   isBulkMode = false;
@@ -73,7 +73,7 @@ export class UserListComponent implements OnInit, OnDestroy {
     this.updateUrl();
   }
 
-  onRoleChange(role: UserTypeEnum | 'all') {
+  onRoleChange(role: UserTypeEnum) {
     this.roleFilter = role;
     this.currentPage = 1;
     this.updateUrl();
@@ -105,7 +105,7 @@ export class UserListComponent implements OnInit, OnDestroy {
         itemsPerPage: this.itemsPerPage,
         search: this.searchTerm || null,
         status: this.statusFilter,
-        role: this.roleFilter !== 'all' ? this.roleFilter : 'all',
+        role: this.roleFilter !== UserTypeEnum.All ? this.roleFilter : 'all',
       },
       queryParamsHandling: 'merge',
     });
@@ -132,7 +132,7 @@ export class UserListComponent implements OnInit, OnDestroy {
         if (roleParam && roleParam !== 'all') {
           this.roleFilter = +roleParam as UserTypeEnum;
         } else {
-          this.roleFilter = 'all';
+          this.roleFilter = UserTypeEnum.All;
         }
         this.refreshDisplayedUsers();
       });

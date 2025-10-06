@@ -1,5 +1,5 @@
 export enum StatusTypeEnum {
-  all = 1,
-  active = 2,
-  inactive = 3,
+  all = -1,
+  active = 1,
+  inactive = 2,
 }

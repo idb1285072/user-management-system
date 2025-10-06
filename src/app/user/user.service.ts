@@ -26,36 +26,32 @@ export class UserService {
     itemsPerPage: number,
     status: StatusTypeEnum = StatusTypeEnum.all,
     searchText: string = '',
-    roleFilter: UserTypeEnum | 'all' = 'all'
+    roleFilter: UserTypeEnum = UserTypeEnum.All
   ): { users: UserInterface[]; totalUsers: number } {
-    let filtered = [...this.users];
+    const normalize = (val: string) => val.toLowerCase();
+    const normalizeSerchText = normalize(searchText.trim());
 
-    if (status === StatusTypeEnum.active)
-      filtered = filtered.filter((u) => u.isActive);
-    else if (status === StatusTypeEnum.inactive)
-      filtered = filtered.filter((u) => !u.isActive);
+    const filteredUsers = this.users
+      .filter((u) =>
+        status === StatusTypeEnum.all
+          ? true
+          : status === StatusTypeEnum.active
+          ? u.isActive
+          : !u.isActive
+      )
+      .filter((u) =>
+        !normalizeSerchText
+          ? true
+          : [u.name, u.email, u.address].some((field) =>
+              normalize(field).includes(normalizeSerchText)
+            )
+      )
+      .filter((u) => roleFilter === UserTypeEnum.All || u.role === roleFilter);
 
-    if (searchText) {
-      const lower = searchText.trim().toLowerCase();
-      filtered = filtered.filter(
-        (u) =>
-          u.name.toLowerCase().includes(lower) ||
-          u.email.toLowerCase().includes(lower) ||
-          u.address.toLowerCase().includes(lower)
-      );
-    }
-
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter((u) => {
-        return u.role === roleFilter;
-      });
-    }
-
-    const totalUsers = filtered.length;
+    const totalUsers = filteredUsers.length;
     const start = (page - 1) * itemsPerPage;
-    const paginatedUsers = filtered.slice(start, start + itemsPerPage);
-
-    return { users: paginatedUsers, totalUsers };
+    const paginated = filteredUsers.slice(start, start + itemsPerPage);
+    return { users: paginated, totalUsers };
   }
 
   addUser(user: UserInterface) {

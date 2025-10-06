@@ -21,13 +21,13 @@ import { Subject } from 'rxjs';
 export class UserFiltersComponent implements OnInit, OnChanges {
   @Input() isBulkMode = false;
   @Input() statusFilter!: StatusTypeEnum;
-  @Input() roleFilter!: UserTypeEnum | 'all';
+  @Input() roleFilter!: UserTypeEnum;
   @Input() statusOptions!: Array<{ label: string; value: StatusTypeEnum }>;
   @Input() roleOptions!: UserTypeEnum[];
   @Input() searchTerm = '';
 
   @Output() statusChange = new EventEmitter<StatusTypeEnum>();
-  @Output() roleChange = new EventEmitter<UserTypeEnum | 'all'>();
+  @Output() roleChange = new EventEmitter<UserTypeEnum>();
   @Output() search = new EventEmitter<string>();
   @Output() enableBulk = new EventEmitter<void>();
   @Output() addUser = new EventEmitter<void>();
@@ -47,7 +47,7 @@ export class UserFiltersComponent implements OnInit, OnChanges {
     this.statusChange.emit(value);
   }
 
-  onRoleChangeLocal(value: UserTypeEnum | 'all') {
+  onRoleChangeLocal(value: UserTypeEnum) {
     this.roleChange.emit(value);
   }
 
