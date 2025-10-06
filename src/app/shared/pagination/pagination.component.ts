@@ -19,9 +19,11 @@ export class PaginationComponent {
 
   @Output() pageChange = new EventEmitter<PaginationEvent>();
 
-  pageSizes: number[] = Object.values(PageSizeEnum).filter(
-    (value) => typeof value === 'number'
-  ) as number[];
+  // pageSizes: number[] = Object.values(PageSizeEnum).filter(
+  //   (value) => typeof value === 'number'
+  // ) as number[];
+
+  pageSizes: number[] = [5, 10, 20, 50];
 
   onChangePage(page: number) {
     if (page < 1 || page > this.totalPages) return;

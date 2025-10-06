@@ -39,6 +39,19 @@ export class UserTableComponent {
   editingCell: { rowIndex: number; field: string } | null = null;
   addColumnUserId: number | null = null;
   addColumnForm!: FormGroup<ChildUserFormInterface>;
+  userTypeEnum = UserTypeEnum;
+  getRoleClass: Record<UserTypeEnum, string> = {
+    [UserTypeEnum.SuperAdmin]: 'bg-dark',
+    [UserTypeEnum.Admin]: 'bg-primary',
+    [UserTypeEnum.Moderator]: 'bg-warning',
+    [UserTypeEnum.Editor]: 'bg-info',
+    [UserTypeEnum.Author]: 'bg-success',
+    [UserTypeEnum.Contributor]: 'bg-secondary',
+    [UserTypeEnum.User]: 'bg-light text-dark',
+    [UserTypeEnum.All]: '',
+  };
+  childrenArrays: FormArray<FormGroup<ChildUserFormInterface>>[] = [];
+  childChunks: { [userId: number]: { column: string; value: string }[][] } = {};
 
   constructor(private userService: UserService) {}
 
@@ -46,17 +59,17 @@ export class UserTableComponent {
     this.buildUsersForm();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges): void {
     this.changeDisplayedUsers(changes);
   }
 
   /* ---------- inline edit ---------- */
 
-  onInlineEdit(i: number) {
+  onInlineEdit(i: number): void {
     this.inlineEditIndexes.add(i);
   }
 
-  onSaveInlineEdit(i: number) {
+  onSaveInlineEdit(i: number): void {
     const group = this.usersArray.at(i);
     if (group.invalid) return;
     const updated = { ...this.displayedUsers[i], ...group.getRawValue() };
@@ -66,7 +79,7 @@ export class UserTableComponent {
     this.refreshRequested.emit();
   }
 
-  onCancelInlineEdit(i: number) {
+  onCancelInlineEdit(i: number): void {
     const group = this.usersArray.at(i);
     const original = this.displayedUsers[i];
     group.patchValue({
@@ -89,13 +102,13 @@ export class UserTableComponent {
 
   /* ---------- cell editing ---------- */
 
-  onCellDblClick(rowIndex: number, field: string) {
+  onCellDblClick(rowIndex: number, field: string): void {
     this.editingCell = { rowIndex, field };
     const control = this.usersArray.at(rowIndex).get(field);
     if (control) control.enable();
   }
 
-  onCellBlur(rowIndex: number, field: string) {
+  onCellBlur(rowIndex: number, field: string): void {
     if (!this.editingCell) return;
     const control = this.usersArray.at(rowIndex).get(field);
     if (control && control.valid) {
@@ -113,7 +126,7 @@ export class UserTableComponent {
     this.editingCell = null;
   }
 
-  onCellKeydown(event: KeyboardEvent, rowIndex: number, field: string) {
+  onCellKeydown(event: KeyboardEvent, rowIndex: number, field: string): void {
     if (event.key === 'Enter') {
       event.preventDefault();
       this.onCellBlur(rowIndex, field);
@@ -127,9 +140,7 @@ export class UserTableComponent {
     }
   }
 
-  /* ---------- add column per user ---------- */
-
-  onStartAddColumn(user: UserInterface) {
+  onStartAddColumn(user: UserInterface): void {
     this.addColumnUserId = user.id;
     this.addColumnForm = new FormGroup({
       column: new FormControl('', {
@@ -143,12 +154,12 @@ export class UserTableComponent {
     });
   }
 
-  onSaveColumn(user: UserInterface) {
+  onSaveColumn(user: UserInterface): void {
     if (this.addColumnForm.invalid) return;
     const child = this.addColumnForm.getRawValue();
     const userIndex = this.displayedUsers.findIndex((u) => u.id === user.id);
     if (userIndex === -1) return;
-    const childrenArray = this.getChildren(userIndex);
+    const childrenArray = this.childrenArrays[userIndex];
     childrenArray.push(
       new FormGroup({
         column: new FormControl(child.column, {
@@ -170,12 +181,12 @@ export class UserTableComponent {
     this.refreshRequested.emit();
   }
 
-  onCancelColumn() {
+  onCancelColumn(): void {
     this.addColumnUserId = null;
   }
 
-  onAddColumn(i: number) {
-    this.getChildren(i).push(
+  onAddColumn(i: number): void {
+    this.childrenArrays[i].push(
       new FormGroup<ChildUserFormInterface>({
         column: new FormControl('', {
           nonNullable: true,
@@ -188,66 +199,85 @@ export class UserTableComponent {
       })
     );
     this.usersArray.at(i).enable();
+
+    const userId = this.displayedUsers[i].id;
+    this.childChunks[userId] = this.chunkChildren(
+      this.childrenArrays[i].value,
+      8
+    );
   }
 
-  onRemoveColumn(i: number, j: number) {
-    this.getChildren(i).removeAt(j);
+  onRemoveColumn(i: number, j: number): void {
+    this.childrenArrays[i].removeAt(j);
+    const userId = this.displayedUsers[i].id;
+    this.childChunks[userId] = this.chunkChildren(
+      this.childrenArrays[i].value,
+      8
+    );
   }
 
   /* ---------- bulk mode ---------- */
 
-  onSaveBulkMode() {
+  onSaveBulkMode(): void {
     if (this.usersForm.invalid) return;
-    const updatedUsers: UserInterface[] = [];
+
+    const updatedUsers: ({ id: number } & Partial<UserInterface>)[] = [];
+
     this.usersArray.controls.forEach((userGroup, index) => {
       const originalUser = this.displayedUsers[index];
       const changes: Partial<UserInterface> = {};
+
       Object.keys(userGroup.controls).forEach((key) => {
         const control = userGroup.get(key)!;
-        if (control.dirty && control.valid) {
-          if (key === 'children') {
-            const newChildren = control.value ?? [];
-            if (
-              JSON.stringify(newChildren) !==
-              JSON.stringify(originalUser.children)
-            ) {
-              changes.children = newChildren;
-            }
-          } else {
-            const newValue = control.value;
-            const oldValue = originalUser[key as keyof UserInterface];
-            if (newValue !== oldValue) {
-              changes[key as keyof UserInterface] = newValue;
-            }
+
+        if (key !== 'children' && control.dirty && control.valid) {
+          const newValue = control.value;
+          const oldValue = originalUser[key as keyof UserInterface];
+          if (newValue !== oldValue) {
+            changes[key as keyof UserInterface] = newValue;
+          }
+        }
+
+        if (key === 'children') {
+          const newChildren = control.value ?? [];
+          const oldChildren = originalUser.children ?? [];
+
+          if (JSON.stringify(newChildren) !== JSON.stringify(oldChildren)) {
+            changes.children = newChildren;
           }
         }
       });
+
       if (Object.keys(changes).length > 0) {
-        updatedUsers.push({ ...originalUser, ...changes });
+        updatedUsers.push({ id: originalUser.id, ...changes });
       }
     });
-    updatedUsers.forEach((u) => this.userService.updateUser(u));
+
+    updatedUsers.forEach((partialUser) =>
+      this.userService.updateUser(partialUser)
+    );
+
     this.bulkModeChange.emit(false);
     this.refreshRequested.emit();
   }
 
-  onCancelBulkMode() {
+  onCancelBulkMode(): void {
     this.bulkModeChange.emit(false);
     this.refreshRequested.emit();
   }
 
   /* ---------- row actions ---------- */
 
-  onToggleStatus(user: UserInterface) {
+  onToggleStatus(user: UserInterface): void {
     this.userService.toggleStatus(user.id);
     this.refreshRequested.emit();
   }
 
-  onEditUser(user: UserInterface) {
+  onEditUser(user: UserInterface): void {
     this.editUserRequest.emit(user.id);
   }
 
-  onDeleteUser(user: UserInterface) {
+  onDeleteUser(user: UserInterface): void {
     if (confirm(`Are you sure you want to delete ${user.name}?`)) {
       this.userService.deleteUser(user.id);
       this.refreshRequested.emit();
@@ -257,7 +287,7 @@ export class UserTableComponent {
   resetChildrenArray(
     array: FormArray<FormGroup<ChildUserFormInterface>>,
     original: { column: string; value: string }[]
-  ) {
+  ): void {
     array.clear();
     original.forEach((c) => {
       array.push(
@@ -278,7 +308,7 @@ export class UserTableComponent {
   chunkChildren(
     children: Array<Partial<{ column: string; value: string }>>,
     size: number
-  ) {
+  ): { column: string; value: string }[][] {
     const chunks: { column: string; value: string }[][] = [];
     for (let i = 0; i < children.length; i += size) {
       const safeSlice = children.slice(i, i + size).map((c) => ({
@@ -288,30 +318,6 @@ export class UserTableComponent {
       chunks.push(safeSlice);
     }
     return chunks;
-  }
-
-  getChildren(i: number): FormArray<FormGroup<ChildUserFormInterface>> {
-    return this.usersArray.at(i).get('children') as FormArray<
-      FormGroup<ChildUserFormInterface>
-    >;
-  }
-
-  getRoleName(role: UserTypeEnum) {
-    return UserTypeEnum[role] || 'Unknown';
-  }
-
-  getRoleClass(role: UserTypeEnum) {
-    const classes: Record<UserTypeEnum, string> = {
-      [UserTypeEnum.SuperAdmin]: 'bg-dark',
-      [UserTypeEnum.Admin]: 'bg-primary',
-      [UserTypeEnum.Moderator]: 'bg-warning',
-      [UserTypeEnum.Editor]: 'bg-info',
-      [UserTypeEnum.Author]: 'bg-success',
-      [UserTypeEnum.Contributor]: 'bg-secondary',
-      [UserTypeEnum.User]: 'bg-light text-dark',
-      [UserTypeEnum.All]: ''
-    };
-    return classes[role] || '';
   }
 
   private buildUserGroup(user: UserInterface): FormGroup<UserFormInterface> {
@@ -380,6 +386,18 @@ export class UserTableComponent {
     this.usersForm = new FormGroup<UsersFormInterface>({
       users: new FormArray(userGroups),
     });
+
+    this.childrenArrays = this.usersArray.controls.map(
+      (group) =>
+        group.get('children') as FormArray<FormGroup<ChildUserFormInterface>>
+    );
+
+    this.childChunks = {};
+    this.displayedUsers.forEach((user) => {
+      const children = user.children ?? [];
+      this.childChunks[user.id] = this.chunkChildren(children, 8);
+    });
+
     if (this.isBulkMode) {
       this.usersArray.controls.forEach((formGroup) => {
         const emailControl = formGroup.get('email');

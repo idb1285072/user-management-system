@@ -9,9 +9,10 @@ import {
 } from '@angular/core';
 import { StatusTypeEnum } from '../../types/enums/status-type.enum';
 import { UserTypeEnum } from '../../types/enums/user-type.enum';
-import { FormControl } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { FilterFormInterface } from '../../types/filter-form.interface';
 
 @Component({
   selector: 'app-user-filters',
@@ -20,8 +21,8 @@ import { Subject } from 'rxjs';
 })
 export class UserFiltersComponent implements OnInit, OnChanges {
   @Input() isBulkMode = false;
-  @Input() statusFilter!: StatusTypeEnum;
-  @Input() roleFilter!: UserTypeEnum;
+  @Input() statusFilter: StatusTypeEnum = StatusTypeEnum.inactive;
+  @Input() roleFilter: UserTypeEnum = UserTypeEnum.All;
   @Input() statusOptions!: Array<{ label: string; value: StatusTypeEnum }>;
   @Input() roleOptions!: UserTypeEnum[];
   @Input() searchTerm = '';
@@ -33,52 +34,61 @@ export class UserFiltersComponent implements OnInit, OnChanges {
   @Output() addUser = new EventEmitter<void>();
 
   private destroy$ = new Subject<void>();
-  searchControl = new FormControl<string>('', { nonNullable: true });
+
+  filterForm: FormGroup<FilterFormInterface> = new FormGroup({
+    status: new FormControl<StatusTypeEnum>(this.statusFilter, {
+      nonNullable: true,
+    }),
+    role: new FormControl<UserTypeEnum>(this.roleFilter, { nonNullable: true }),
+    search: new FormControl<string>(this.searchTerm, { nonNullable: true }),
+  });
+
+  UserTypeEnum = UserTypeEnum;
 
   ngOnInit(): void {
     this.initSearchParam();
   }
 
-  ngOnChanges(changes: SimpleChanges) {
+  ngOnChanges(changes: SimpleChanges): void {
     this.changeSearchParam(changes);
   }
 
-  onStatusChangeLocal(value: StatusTypeEnum) {
+  onStatusChangeLocal(value: StatusTypeEnum): void {
     this.statusChange.emit(value);
   }
 
-  onRoleChangeLocal(value: UserTypeEnum) {
+  onRoleChangeLocal(value: UserTypeEnum): void {
     this.roleChange.emit(value);
   }
 
-  onEnableBulkClicked() {
+  onEnableBulkClicked(): void {
     this.enableBulk.emit();
   }
 
-  onAddUserClicked() {
+  onAddUserClicked(): void {
     this.addUser.emit();
   }
 
-  getRoleName(role: UserTypeEnum) {
-    return UserTypeEnum[role] || 'Unknown';
+  private initSearchParam(): void {
+    this.filterForm.valueChanges
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe((filters) => {
+        this.statusChange.emit(filters.status);
+        this.roleChange.emit(filters.role);
+        this.search.emit(filters.search || '');
+      });
   }
 
-  private initSearchParam() {
-    this.searchControl.valueChanges
-      .pipe(
-        debounceTime(1000),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe((v) => this.search.emit(v || ''));
-  }
-
-  private changeSearchParam(changes: SimpleChanges) {
-    if (
-      changes['searchTerm'] &&
-      changes['searchTerm'].currentValue !== this.searchControl.value
-    ) {
-      this.searchControl.setValue(this.searchTerm, { emitEvent: false });
+  private changeSearchParam(changes: SimpleChanges): void {
+    if (this.filterForm) {
+      this.filterForm.patchValue(
+        {
+          status: this.statusFilter,
+          role: this.roleFilter,
+          search: this.searchTerm,
+        },
+        { emitEvent: false }
+      );
     }
   }
 

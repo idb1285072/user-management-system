@@ -65,12 +65,12 @@ export class UserService {
     return this.users.find((user) => user.id === id);
   }
 
-  updateUser(updatedUser: UserInterface) {
-    const index = this.users.findIndex((u) => u.id === updatedUser.id);
+  updateUser(partialUser: Partial<UserInterface> & { id: number }) {
+    const index = this.users.findIndex((u) => u.id === partialUser.id);
     if (index !== -1) {
       this.users[index] = {
         ...this.users[index],
-        ...updatedUser,
+        ...partialUser,
       };
       this.saveToLocalStorage();
     }

@@ -259,9 +259,10 @@
               formControlName="role"
             >
               <option *ngFor="let role of roleOptions" [ngValue]="role">
-                {{ getRoleName(role) }}
+                {{ userTypeEnum[role] }}
               </option>
             </select>
+
             <span
               *ngIf="
                 !isBulkMode &&
@@ -269,8 +270,8 @@
                 !(editingCell?.rowIndex === i && editingCell?.field === 'role')
               "
               class="badge"
-              [ngClass]="getRoleClass(row.get('role')!.value)"
-              >{{ getRoleName(row.get("role")!.value) }}</span
+              [ngClass]="getRoleClass[row.get('role')!.value]"
+              >{{ userTypeEnum[row.get("role")!.value] }}</span
             >
           </td>
 
@@ -333,12 +334,34 @@
               </button>
 
               <button
+                *ngIf="
+                  !row.get('isActive')?.value &&
+                  !isBulkMode &&
+                  !inlineEditIndexes.has(i)
+                "
+                class="btn btn-danger btn-sm m-1"
+                type="button"
+                (click)="onDeleteUser(displayedUsers[i])"
+              >
+                Delete
+              </button>
+
+              <button
                 *ngIf="!inlineEditIndexes.has(i)"
                 type="button"
                 class="btn btn-primary btn-sm m-1"
                 (click)="onInlineEdit(i)"
               >
                 Inline edit
+              </button>
+
+              <button
+                *ngIf="!inlineEditIndexes.has(i)"
+                type="button"
+                class="btn btn-info btn-sm m-1"
+                (click)="onStartAddColumn(displayedUsers[i])"
+              >
+                Add Column
               </button>
 
               <button
@@ -359,29 +382,7 @@
               >
                 Cancel
               </button>
-
-              <button
-                *ngIf="!inlineEditIndexes.has(i)"
-                type="button"
-                class="btn btn-info btn-sm m-1"
-                (click)="onStartAddColumn(displayedUsers[i])"
-              >
-                Add Column
-              </button>
             </ng-container>
-
-            <button
-              *ngIf="
-                !row.get('isActive')?.value &&
-                !isBulkMode &&
-                !inlineEditIndexes.has(i)
-              "
-              class="btn btn-danger btn-sm m-1"
-              type="button"
-              (click)="onDeleteUser(displayedUsers[i])"
-            >
-              Delete
-            </button>
           </td>
         </tr>
 
@@ -443,7 +444,7 @@
           <td colspan="9">
             <div formArrayName="children">
               <div
-                *ngFor="let c of getChildren(i).controls; let j = index"
+                *ngFor="let c of childrenArrays[i].controls; let j = index"
                 [formGroupName]="j"
               >
                 <div class="d-flex mb-1 gap-1">
@@ -499,10 +500,8 @@
         </tr>
 
         <!-- children display rows -->
-        <ng-container
-          *ngIf="getChildren(i).controls && getChildren(i).controls.length > 0"
-        >
-          <tr *ngFor="let chunk of chunkChildren(getChildren(i).value, 8)">
+        <ng-container *ngIf="childChunks[displayedUsers[i].id]?.length">
+          <tr *ngFor="let chunk of childChunks[displayedUsers[i].id]">
             <td></td>
             <td *ngFor="let child of chunk">
               <ng-container *ngIf="child.column">
@@ -522,7 +521,6 @@
   </table>
 </form>
 
-<!-- bulk mode controls -->
 <div *ngIf="isBulkMode">
   <button
     class="btn btn-success me-2"
